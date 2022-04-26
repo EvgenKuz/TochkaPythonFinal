@@ -1,0 +1,40 @@
+services:
+  web:
+    build:
+      dockerfile: Dockerfile.web
+    image: docker-test-web:latest
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - 8080:8080
+  postgres:
+    image: postgres:14.2-alpine
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=4Ynh^p25&*
+      - APP_DB_USER=auctioner
+      - APP_DB_PASS=&@737%mpHB
+      - APP_DB_NAME=auction
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d/
+      - ./db/persistent:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  redis:
+    image: redis:6-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      timeout: 3s
+      interval: 1s
+      retries: 5
+    command: redis-server --requirepass 2222
+    restart: always
+    ports:
+      - "6379:6379"
