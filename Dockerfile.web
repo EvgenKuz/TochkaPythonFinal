@@ -1,7 +1,12 @@
-FROM python:3.10.4-slim-bullseye
+FROM python:3.10-slim-bullseye
+
+RUN apt update
+RUN apt upgrade -y
+RUN apt install curl -y
 
 COPY src/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+HEALTHCHECK --interval=1m --timeout=3s --retries=5 CMD curl --fail localhost:8080/health || exit 1
 
 COPY src .
 CMD [ "python", "App.py" ]
