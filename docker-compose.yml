@@ -5,10 +5,11 @@ services:
     depends_on:
       - postgres
       - redis
+    env_file:
+      - src/auction_db.env
+      - .env
     ports:
       - 8080:8080
-    env_file:
-      - ./src/auction.env
   postgres:
     image: postgres:14.2-alpine
     healthcheck:
@@ -17,11 +18,11 @@ services:
       interval: 10s
       retries: 10
     restart: always
+    env_file:
+      - src/auction_db.env
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=4Ynh^p25&*
-    env_file:
-      - ./src/auction.env
     volumes:
       - ./db/init:/docker-entrypoint-initdb.d/
       - ./db/persistent:/var/lib/postgresql/data
@@ -34,9 +35,7 @@ services:
       timeout: 5s
       interval: 10s
       retries: 10
-    env_file:
-      - ./src/auction.env
-    command: "redis-server --requirepass $${REDIS_PASS}"
+    command: redis-server --requirepass ${REDIS_PASS}
     restart: always
     ports:
       - "6379:6379"
