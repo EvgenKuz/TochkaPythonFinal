@@ -1,4 +1,3 @@
-import asyncio
 import os
 
 from peewee_async import PostgresqlDatabase, Manager
