@@ -9,10 +9,11 @@ from aiohttp_security.session_identity import SessionIdentityPolicy
 from aiohttp_session import setup
 from aiohttp_session.redis_storage import RedisStorage
 from aioredis import Redis
+import aiohttp_cors
 
-from Utils import manager
-from auth.AuthorizationPolicy import AuthorizationPolicy
-from jsonrpc import Parser
+from src.Utils import manager
+from src.auth.AuthorizationPolicy import AuthorizationPolicy
+from src.jsonrpc import Parser
 from src.Models import create_tables
 
 routes = RouteTableDef()
@@ -23,6 +24,16 @@ def init() -> Application:
     add_routes(app)
     app["redis"] = Redis(host="redis", password=os.getenv("REDIS_PASS"))
     app["db_manager"] = manager
+    cors = aiohttp_cors.setup(app)
+    cors.add(app.router.add_route("POST", "/api/v1/jsonrpc", jsonrpc_api),
+             {
+                 "*": aiohttp_cors.ResourceOptions(
+                     allow_credentials=True,
+                     expose_headers="*",
+                     allow_headers="*",
+                     allow_methods=["POST"]
+                 )
+             })
     setup(app, RedisStorage(app["redis"]))
     security_setup(app, SessionIdentityPolicy(), AuthorizationPolicy())
 
@@ -43,7 +54,6 @@ async def health_check(request: Request) -> Response:
     return Response(status=200)
 
 
-@routes.post("/api/v1/jsonrpc")
 async def jsonrpc_api(request: Request) -> Response:
     return await Parser.parse_jsonrpc(request)
 

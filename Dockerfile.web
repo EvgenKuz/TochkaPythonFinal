@@ -8,5 +8,5 @@ COPY src/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 HEALTHCHECK --interval=1m --timeout=3s --retries=5 CMD curl --fail localhost:8080/health || exit 1
 
-COPY src .
-CMD [ "python", "App.py" ]
+COPY src src
+CMD [ "python", "-m", "src.App" ]

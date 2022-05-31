@@ -33,6 +33,5 @@ async def check_credentials(login: str, password: str) -> bool:
                                        .where(User.username == login))
     except peewee.DoesNotExist:
         return False
-    print(user)
     return sha256_crypt.verify(password, user.password)
 

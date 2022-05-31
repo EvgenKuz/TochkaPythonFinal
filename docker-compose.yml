@@ -1,7 +1,10 @@
+version: "3"
+
 services:
   web:
     build:
       dockerfile: Dockerfile.web
+      context: ./
     depends_on:
       - postgres
       - redis
@@ -9,25 +12,21 @@ services:
       - src/auction_db.env
       - .env
     ports:
-      - 8080:8080
+      - "8080:8080"
   postgres:
     image: postgres:14.2-alpine
     healthcheck:
-      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root" ]
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
       timeout: 45s
       interval: 10s
       retries: 10
-    restart: always
     env_file:
       - src/auction_db.env
-    environment:
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=4Ynh^p25&*
     volumes:
+      - ./db/persistent:/var/lib/postgresql/data:z
       - ./db/init:/docker-entrypoint-initdb.d/
-      - ./db/persistent:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
   redis:
     image: redis:6-alpine
     healthcheck:

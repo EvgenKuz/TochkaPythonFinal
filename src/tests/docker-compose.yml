@@ -1,3 +1,5 @@
+version: "3"
+
 services:
   web:
     build:
@@ -10,7 +12,7 @@ services:
       - ../auction_db.env
       - ../../.env
     ports:
-      - 8080:8080
+      - "8080:8080"
   postgres:
     image: postgres:14.2-alpine
     healthcheck:
@@ -22,12 +24,12 @@ services:
     env_file:
       - ../auction_db.env
     environment:
-      - POSTGRES_USER=root
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=4Ynh^p25&*
     volumes:
       - ../../db/init:/docker-entrypoint-initdb.d/
     ports:
-      - 5432:5432
+      - "5432:5432"
   redis:
     image: redis:6-alpine
     healthcheck:

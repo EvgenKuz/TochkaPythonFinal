@@ -1,13 +1,16 @@
 <script setup>
-import Welcome from "./components/Welcome.vue"
+import welcome from "./components/Welcome.vue"
 import register from "./components/Register.vue"
+import login from "./components/Login.vue"
+import {store} from "./state/user"
 </script>
 
 <script>
 export default {
    data(){
       return {
-         selectedComponent: "Welcome"
+         selectedComponent: "welcome",
+         store
       }
    },
    methods: {
@@ -16,8 +19,12 @@ export default {
    }
   },
   components: {
-    Welcome,
-    register
+    welcome,
+    register,
+    login
+  },
+  mounted() {
+    this.store.user = this.$cookies.isKey("username") ? this.$cookies.get("username") : null;
   }
 }
 </script>

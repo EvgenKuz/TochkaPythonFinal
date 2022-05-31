@@ -12,7 +12,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
-    "vue": "^3.2.33"
+    "vue": "^3.2.33",
+    "vue-cookies": "^1.8.1"
   },
   "devDependencies": {
     "@cypress/vite-dev-server": "^2.2.2",
