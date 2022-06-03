@@ -72,3 +72,19 @@ def no_user_logged_in_error(json: dict) -> dict:
     error["error"]["message"] = "No user is logged in"
 
     return error
+
+
+def no_access_error(json: dict) -> dict:
+    error = common_error(json["id"])
+    error["error"]["code"] = -32004
+    error["error"]["message"] = "You have no access to this method"
+
+    return error
+
+
+def method_disabled_error(json: dict) -> dict:
+    error = common_error(json["id"])
+    error["error"]["code"] = -32005
+    error["error"]["message"] = "Method was disabled"
+
+    return error

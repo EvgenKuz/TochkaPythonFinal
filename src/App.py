@@ -14,7 +14,7 @@ import aiohttp_cors
 from src.Utils import manager
 from src.auth.AuthorizationPolicy import AuthorizationPolicy
 from src.jsonrpc import Parser
-from src.Models import create_tables
+from src.db.Utils import create_tables
 
 routes = RouteTableDef()
 

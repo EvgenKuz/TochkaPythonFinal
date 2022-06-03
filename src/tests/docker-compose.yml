@@ -16,7 +16,7 @@ services:
   postgres:
     image: postgres:14.2-alpine
     healthcheck:
-      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root" ]
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
       timeout: 45s
       interval: 10s
       retries: 10
@@ -27,13 +27,13 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=4Ynh^p25&*
     volumes:
-      - ../../db/init:/docker-entrypoint-initdb.d/
+      - ../../db/init:/docker-entrypoint-initdb.d/:z
     ports:
       - "5432:5432"
   redis:
     image: redis:6-alpine
     healthcheck:
-      test: ["CMD", "redis-cli","ping"]
+      test: ["CMD", "redis-cli", "ping"]
       timeout: 5s
       interval: 10s
       retries: 10

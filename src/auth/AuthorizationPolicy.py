@@ -1,6 +1,6 @@
 import peewee
 
-from src.Models import User
+from src.db.Models import User
 from passlib.hash import sha256_crypt
 from src.Utils import manager
 from aiohttp_security import AbstractAuthorizationPolicy
@@ -22,7 +22,7 @@ class AuthorizationPolicy(AbstractAuthorizationPolicy):
 
         if permission == "public":
             return True
-        is_admin = manager.get(User, User.username == identity).is_superuser
+        is_admin = (await manager.get(User, User.username == identity)).is_superuser
 
         return is_admin
 

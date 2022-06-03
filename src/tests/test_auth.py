@@ -1,16 +1,22 @@
 import asyncio
-import json
-
 import pytest
 
-from .. import App
 from aiohttp.pytest_plugin import TestClient
 from aiohttp.client import ClientResponse
 
-jsonrpc_path: str = "/api/v1/jsonrpc"
+from .test_utils import jsonrpc_path, create_jsonrpc_request
+from .. import App
+from ..db.Utils import clear_tables, manager
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module", autouse=True)
+async def teardown():
+    yield
+    clear_tables()
+    await manager.close()
+
+
+@pytest.fixture(scope="module")
 def event_loop():
     return asyncio.new_event_loop()
 
@@ -110,9 +116,3 @@ async def test_no_user_logged_in_error(client: TestClient) -> None:
 
     assert dict_response["error"]["code"] == -32003
     assert dict_response["error"]["message"] == "No user is logged in"
-
-
-def create_jsonrpc_request(method: str, params: dict[str, str]) -> str:
-    jsonrpc = {"jsonrpc": "2.0", "method": method, "params": params, "id": 1}
-
-    return json.dumps(jsonrpc, ensure_ascii=False)
