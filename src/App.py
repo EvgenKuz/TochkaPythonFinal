@@ -23,7 +23,7 @@ def init() -> Application:
     app = Application()
     add_routes(app)
     app["redis"] = Redis(host="redis", password=os.getenv("REDIS_PASS"))
-    app["db_manager"] = manager
+    app["db"] = manager
     cors = aiohttp_cors.setup(app)
     cors.add(app.router.add_route("POST", "/api/v1/jsonrpc", jsonrpc_api),
              {

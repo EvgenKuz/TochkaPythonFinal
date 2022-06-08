@@ -238,13 +238,27 @@ async def test_get_item_no_access(client: TestClient) -> None:
     assert ans["error"]["message"] == "You have no access to this method"
 
 
+async def test_get_item_auction_does_not_exist_error(client: TestClient) -> None:
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
+        "username": "tester7.1",
+        "password": "1234",
+        "email": "tud@mgd.dut"
+    }))
+
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_item", {"id": "12454"}))
+    ans = await resp.json()
+
+    assert ans["error"]["code"] == -32006
+    assert ans["error"]["message"] == "Auction with this id doesn't exist"
+
+
 async def test_bet(client: TestClient) -> None:
     await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
         "username": "tester8",
         "password": "1234",
         "email": "tud@mud.dat"
     }))
-    await make_admin("tester7")
+    await make_admin("tester8")
     await client.post(jsonrpc_path, data=create_jsonrpc_request("add_item", {
         "name": "Item8",
         "starting_price": 28.55,
@@ -258,7 +272,7 @@ async def test_bet(client: TestClient) -> None:
     item_id = ""
 
     for it in ans["result"]:
-        if it["name"] == "Item7":
+        if it["name"] == "Item8":
             item_id = it["id"]
 
     resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {
@@ -275,6 +289,127 @@ async def test_bet_no_access(client: TestClient) -> None:
         "id": "455005",
         "price": 40
     }))
+    ans = await resp.json()
+
+    assert ans["error"]["code"] == -32004
+    assert ans["error"]["message"] == "You have no access to this method"
+
+
+async def test_bet_auction_does_not_exist_error(client: TestClient) -> None:
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
+        "username": "tester8.1",
+        "password": "1234",
+        "email": "tud@myd.dat"
+    }))
+
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {
+        "id": "12456",
+        "price": 12.4
+    }))
+    ans = await resp.json()
+
+    assert ans["error"]["code"] == -32006
+    assert ans["error"]["message"] == "Auction with this id doesn't exist"
+
+
+async def test_get_auction_bets(client: TestClient) -> None:
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
+        "username": "tester9",
+        "password": "1234",
+        "email": "tar@juk.lo"
+    }))
+    await make_admin("tester9")
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("add_item", {
+        "name": "Item9",
+        "starting_price": 28.55,
+        "picture": "blablalink8",
+        "description": "A thing 9",
+        "end_of_auction": "2024-09-13T01:23:45"
+    }))
+
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_items", {}))
+    ans = await resp.json()
+    item_id = ""
+
+    for it in ans["result"]:
+        if it["name"] == "Item9":
+            item_id = it["id"]
+
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {"id": item_id, "price": 140}))
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {"id": item_id, "price": 145}))
+
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_auction_bets", {
+        "id": item_id
+    }))
+    ans = (await resp.json())["result"]
+
+    assert type(ans) == list
+    assert len(ans) == 2
+    assert ans[0]["price"] == 145
+
+
+async def test_get_auction_bets_no_access_error(client: TestClient) -> None:
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_auction_bets", {
+        "id": "2344"
+    }))
+    ans = await resp.json()
+
+    assert ans["error"]["code"] == -32004
+    assert ans["error"]["message"] == "You have no access to this method"
+
+
+async def test_get_auction_bets_auction_does_not_exist_error(client: TestClient) -> None:
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
+        "username": "tester9.1",
+        "password": "1234",
+        "email": "tar@jukk.lo"
+    }))
+
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_auction_bets", {
+        "id": "aaaa2222aaaaaa"
+    }))
+    ans = await resp.json()
+
+    assert ans["error"]["code"] == -32006
+    assert ans["error"]["message"] == "Auction with this id doesn't exist"
+
+
+async def test_get_user_bets(client: TestClient) -> None:
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
+        "username": "tester10",
+        "password": "1234",
+        "email": "tar@juuk.lo"
+    }))
+    await make_admin("tester10")
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("add_item", {
+        "name": "Item10",
+        "starting_price": 28.55,
+        "picture": "blablalink9",
+        "description": "A thing 10",
+        "end_of_auction": "2024-09-13T01:23:45"
+    }))
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_items", {}))
+    ans = await resp.json()
+    item_id = ""
+
+    for it in ans["result"]:
+        if it["name"] == "Item10":
+            item_id = it["id"]
+
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {"id": item_id, "price": 142}))
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {"id": item_id, "price": 148}))
+
+    resp = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_user_bets", {}))
+    ans = (await resp.json())["result"]
+
+    assert type(ans) == list
+    assert len(ans) == 2
+    assert ans[0]["name"] == "Item10"
+    assert ans[0]["price"] == 148
+
+
+async def test_get_user_bets_no_access_error(client: TestClient) -> None:
+    resp = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_user_bets", {}))
     ans = await resp.json()
 
     assert ans["error"]["code"] == -32004

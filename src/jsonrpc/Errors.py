@@ -1,90 +1,57 @@
-def common_error(id: [int, None]) -> dict:
-    return {"jsonrpc": "2.0", "error": {}, "id": id}
+def common_error(json: dict or None, code: int, message: str) -> dict:
+    return {
+        "jsonrpc": "2.0",
+        "error": {
+            "code": code,
+            "message": message
+        },
+        "id": json["id"] if json else json
+    }
 
 
 def parse_error() -> dict:
-    error = common_error(None)
-    error["error"]["code"] = -32700
-    error["error"]["message"] = "Parse error"
-
-    return error
+    return common_error(None, -32700, "Parse error")
 
 
 def invalid_request_error() -> dict:
-    error = common_error(None)
-    error["error"]["code"] = -32600
-    error["error"]["message"] = "Invalid request"
-
-    return error
+    return common_error(None, -32600, "Invalid request")
 
 
 def method_not_found_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32601
-    error["error"]["message"] = "Method not found"
-
-    return error
+    return common_error(json, -32601, "Method not found")
 
 
 def invalid_params_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32602
-    error["error"]["message"] = "Invalid params"
-
-    return error
+    return common_error(json, -32602, "Invalid params")
 
 
 def internal_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32603
-    error["error"]["message"] = "Internal error"
-
-    return error
+    return common_error(json, -32603, "Internal error")
 
 
 def user_exists_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32000
-    error["error"]["message"] = "This username or email is already used"
-
-    return error
+    return common_error(json, -32000, "This username or email is already used")
 
 
 def wrong_login_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32001
-    error["error"]["message"] = "Wrong username or password"
-
-    return error
+    return common_error(json, -32001, "Wrong username or password")
 
 
 def invalid_email_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32002
-    error["error"]["message"] = "Invalid email format"
-
-    return error
+    return common_error(json, -32002, "Invalid email format")
 
 
 def no_user_logged_in_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32003
-    error["error"]["message"] = "No user is logged in"
-
-    return error
+    return common_error(json, -32003, "No user is logged in")
 
 
 def no_access_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32004
-    error["error"]["message"] = "You have no access to this method"
-
-    return error
+    return common_error(json, -32004, "You have no access to this method")
 
 
 def method_disabled_error(json: dict) -> dict:
-    error = common_error(json["id"])
-    error["error"]["code"] = -32005
-    error["error"]["message"] = "Method was disabled"
+    return common_error(json, -32005, "Method was disabled")
 
-    return error
+
+def auction_does_not_exist_error(json: dict):
+    return common_error(json, -32006, "Auction with this id doesn't exist")
