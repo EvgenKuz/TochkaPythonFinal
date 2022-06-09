@@ -1,4 +1,4 @@
-const jsonrpc_url = "http://localhost:8080/api/v1/jsonrpc"
+const jsonrpc_url = "/api/v1/jsonrpc"
 
 export async function call_method(method, params) {
     let data = {

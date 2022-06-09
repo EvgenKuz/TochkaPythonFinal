@@ -54,7 +54,9 @@ async def login(request: Request, json: dict) -> Response:
     username = params["username"].lower()
 
     if await check_credentials(username, params["password"]):
-        response = make_jsonrpc_response(json, "ok")
+        response = make_jsonrpc_response(json, {"is_admin": (await request.app["db"]
+                                         .get(User.select(User.is_superuser).where(User.username == username)))
+                                         .is_superuser})
 
         await remember(request, response, username)
         return response
@@ -85,8 +87,8 @@ async def add_item(request: Request, json: dict) -> Response:
     id = uuid.uuid4()
 
     await request.app["db"].create(Auction, id=id, name=name, picture=picture,
-                               description=description, end_of_auction=end_of_auction,
-                               user=await authorized_userid(request), staring_price=starting_price)
+                                   description=description, end_of_auction=end_of_auction,
+                                   user=await authorized_userid(request), staring_price=starting_price)
 
     response = make_jsonrpc_response(json, "ok")
 
@@ -115,7 +117,8 @@ async def get_items(request: Request, json: dict) -> Response:
     if await permits(request, "admin"):
         db_items = await request.app["db"].execute(Auction.select().order_by(Auction.end_of_auction))
     else:
-        db_items = await request.app["db"].execute(Auction.select().where(Auction.allowed)
+        db_items = await request.app["db"].execute(Auction.select()
+                                                   .where(Auction.allowed & (Auction.end_of_auction > datetime.now()))
                                                    .order_by(Auction.end_of_auction))
 
     items = []
@@ -195,3 +198,4 @@ async def get_user_bets(request: Request, json: dict) -> Response:
         })
 
     return make_jsonrpc_response(json, bets)
+

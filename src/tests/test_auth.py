@@ -48,7 +48,7 @@ async def test_login(client: TestClient) -> None:
                                                                               "password": "1234"}))
     dict_response: dict = await response.json()
     print(dict_response)
-    assert dict_response["result"] == "ok"
+    assert not dict_response["result"]["is_admin"]
 
 
 async def test_user_exists_error(client: TestClient) -> None:

@@ -2,7 +2,11 @@
 import welcome from "./components/Welcome.vue"
 import register from "./components/Register.vue"
 import login from "./components/Login.vue"
+import add_item from "./components/AddItem.vue"
+import auction from "./components/Auction.vue"
+import personal_page from "./components/PersonalPage.vue"
 import {store} from "./state/user"
+import { current } from "./state/auction"
 </script>
 
 <script>
@@ -10,7 +14,8 @@ export default {
    data(){
       return {
          selectedComponent: "welcome",
-         store
+         store,
+         current
       }
    },
    methods: {
@@ -21,10 +26,14 @@ export default {
   components: {
     welcome,
     register,
-    login
+    login,
+    add_item,
+    auction,
+    personal_page
   },
   mounted() {
     this.store.user = this.$cookies.isKey("username") ? this.$cookies.get("username") : null;
+    this.store.is_admin = this.$cookies.isKey("is_admin") ? this.$cookies.get("is_admin") : false;
   }
 }
 </script>
@@ -35,7 +44,8 @@ export default {
   </header>
 
   <main>
-    <component @nextStep="changeStep" :is="selectedComponent"></component>
+    <component v-if="!current.auctionId" @nextStep="changeStep" :is="selectedComponent"></component>
+    <auction v-else></auction>
   </main>
 </template>
 

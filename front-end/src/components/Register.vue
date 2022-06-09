@@ -55,5 +55,6 @@ export default {
     <input v-model="username" type="text" placeholder="Имя пользователя">
     <input v-model="password" type="password" placeholder="Пароль">
     <input v-model="email" type="email" placeholder="Почта">
-    <button @click="send">Зарегистрироваться</button>
+    <button @click="send">Зарегистрироваться</button><br>
+    <button @click="changeStep">Назад</button>
 </template>

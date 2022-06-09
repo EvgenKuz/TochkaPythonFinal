@@ -12,6 +12,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "simplepicker": "^2.0.4",
     "vue": "^3.2.33",
     "vue-cookies": "^1.8.1"
   },

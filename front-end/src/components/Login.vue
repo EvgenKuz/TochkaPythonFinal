@@ -39,8 +39,10 @@ export default {
             }
 
             this.store.user = this.username;
+            this.store.is_admin = response["result"]["is_admin"];
             this.$cookies.set("username", this.username);
-            this.changeStep()
+            this.$cookies.set("is_admin", this.store.is_admin);
+            this.changeStep();
         }
     },
     components: { FormError, ServerError }
@@ -53,5 +55,6 @@ export default {
     <ServerError v-else-if="hasErrors">{{error}}</ServerError>
     <input v-model="username" type="text" placeholder="Имя пользователя">
     <input v-model="password" type="password" placeholder="Пароль">
-    <button @click="login">Войти</button>
+    <button @click="login">Войти</button><br>
+    <button @click="changeStep">Назад</button>
 </template>

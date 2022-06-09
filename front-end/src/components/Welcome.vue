@@ -1,6 +1,7 @@
 <script>
 import {store} from "../state/user"
-import { call_method } from "../utils/JsonRpc";
+import { call_method } from "../utils/JsonRpc"
+import Auctions from "./Auctions.vue"
 import ServerError from "./errors/ServerError.vue"
 
 export default {
@@ -26,10 +27,12 @@ export default {
             }
 
             this.store.user = null;
+            this.store.is_admin = false;
             this.$cookies.remove("username");
+            this.$cookies.remove("is_admin");
         }
     },
-    components: {ServerError}
+    components: {ServerError, Auctions}
 }
 </script>
 
@@ -43,5 +46,8 @@ export default {
         <h3>Привет, {{store.user}}!</h3>
         <ServerError v-if="hasError">{{error}}</ServerError>
         <button @click="logout">Выйти</button>
+        <button @click="changeStep('personal_page')">Личный кабинет</button>
+        <button v-if="store.is_admin" @click="changeStep('add_item')">Добавить аукцион</button>
+        <Auctions></Auctions>
     </div>
 </template>

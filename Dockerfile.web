@@ -3,10 +3,16 @@ FROM python:3.10-slim-bullseye
 RUN apt update
 RUN apt upgrade -y
 RUN apt install curl -y
+RUN apt install npm -y
 
 COPY src/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 HEALTHCHECK --interval=1m --timeout=3s --retries=5 CMD curl --fail localhost:8080/health || exit 1
 
 COPY src src
+COPY front-end front-end
+WORKDIR front-end
+RUN npm install
+RUN npm run build
+WORKDIR ..
 CMD [ "python", "-m", "src.App" ]

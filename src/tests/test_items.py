@@ -414,3 +414,31 @@ async def test_get_user_bets_no_access_error(client: TestClient) -> None:
 
     assert ans["error"]["code"] == -32004
     assert ans["error"]["message"] == "You have no access to this method"
+
+
+@pytest.mark.skip("")
+async def test_get_auction_winner(client: TestClient) -> None:
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
+        "username": "tester11",
+        "password": "1234",
+        "email": "tar@jaaak.lo"
+    }))
+    await make_admin("tester11")
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("add_item", {
+        "name": "Item11",
+        "starting_price": 28.55,
+        "picture": "blablalink10",
+        "description": "A thing 11",
+        "end_of_auction": "2024-09-14T01:23:45"
+    }))
+
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_items", {}))
+    ans = await resp.json()
+    item_id = ""
+
+    for it in ans["result"]:
+        if it["name"] == "Item10":
+            item_id = it["id"]
+
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {"id": item_id, "price": 142}))
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {"id": item_id, "price": 148}))

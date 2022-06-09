@@ -17,3 +17,10 @@ async def make_admin(username: str):
 
     user.is_superuser = True
     user.save()
+
+
+def make_admin_sync(username: str):
+    user = User.get(User.username == username)
+
+    user.is_superuser = True
+    user.save()

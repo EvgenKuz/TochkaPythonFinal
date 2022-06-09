@@ -9,7 +9,6 @@ from aiohttp_security.session_identity import SessionIdentityPolicy
 from aiohttp_session import setup
 from aiohttp_session.redis_storage import RedisStorage
 from aioredis import Redis
-import aiohttp_cors
 
 from src.Utils import manager
 from src.auth.AuthorizationPolicy import AuthorizationPolicy
@@ -24,17 +23,7 @@ def init() -> Application:
     add_routes(app)
     app["redis"] = Redis(host="redis", password=os.getenv("REDIS_PASS"))
     app["db"] = manager
-    cors = aiohttp_cors.setup(app)
-    cors.add(app.router.add_route("POST", "/api/v1/jsonrpc", jsonrpc_api),
-             {
-                 "*": aiohttp_cors.ResourceOptions(
-                     allow_credentials=True,
-                     expose_headers="*",
-                     allow_headers="*",
-                     allow_methods=["POST"]
-                 )
-             })
-    setup(app, RedisStorage(app["redis"]))
+    setup(app, RedisStorage(app["redis"], samesite="lax"))
     security_setup(app, SessionIdentityPolicy(), AuthorizationPolicy())
 
     create_tables()
@@ -43,10 +32,10 @@ def init() -> Application:
     return app
 
 
-#@routes.get("/")
-#async def main(request: Request) -> Response:
-#    with open("../front-end/index.html", 'r', encoding="utf-8") as html:
-#        return Response(text=html.read(), content_type="text/html")
+@routes.get("/")
+async def main(request: Request) -> Response:
+    with open("../front-end/dist/index.html", 'r', encoding="utf-8") as html:
+        return Response(text=html.read(), content_type="text/html")
 
 
 @routes.get("/health")
@@ -54,14 +43,17 @@ async def health_check(request: Request) -> Response:
     return Response(status=200)
 
 
+@routes.post("/api/v1/jsonrpc")
 async def jsonrpc_api(request: Request) -> Response:
     return await Parser.parse_jsonrpc(request)
 
 
 def add_routes(app: Application):
     mimetypes.init()
+    mimetypes.types_map['.html'] = 'text/html; charset=utf-8'
     mimetypes.types_map['.js'] = 'application/javascript; charset=utf-8'
-    mimetypes.types_map['.vue'] = 'application/javascript; charset=utf-8'
+    mimetypes.types_map['.css'] = 'text/css; charset=utf-8'
+    routes.static("/", "../front-end/dist/")
 
     app.router.add_routes(routes)
 
