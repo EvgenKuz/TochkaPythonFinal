@@ -32,7 +32,7 @@ jobs:
         uses: isbang/compose-action@v1.1.0
         with:
           compose-file: "./src/tests/docker-compose.yml"
-          services: 
+          services: |
             postgres
             redis
         
