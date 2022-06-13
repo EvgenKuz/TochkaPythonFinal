@@ -1,5 +1,5 @@
 <script>
-import {store} from "../state/user"
+import {store, forgetUser} from "../state/user"
 import { call_method } from "../utils/JsonRpc"
 import Auctions from "./Auctions.vue"
 import ServerError from "./errors/ServerError.vue"
@@ -26,10 +26,7 @@ export default {
                 return;
             }
 
-            this.store.user = null;
-            this.store.is_admin = false;
-            this.$cookies.remove("username");
-            this.$cookies.remove("is_admin");
+            forgetUser(this);
         }
     },
     components: {ServerError, Auctions}
