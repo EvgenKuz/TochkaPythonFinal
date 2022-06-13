@@ -27,8 +27,6 @@ def init() -> Application:
     security_setup(app, SessionIdentityPolicy(), AuthorizationPolicy())
 
     create_tables()
-
-    logging.basicConfig(level=logging.DEBUG)
     return app
 
 

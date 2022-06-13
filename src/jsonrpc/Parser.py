@@ -41,6 +41,5 @@ async def method_handler(request: Request, json: dict) -> Response:
     except KeyError:
         return json_response(invalid_params_error(json))
     except Exception as e:
-        print(e)
         return json_response(internal_error(json))
 
