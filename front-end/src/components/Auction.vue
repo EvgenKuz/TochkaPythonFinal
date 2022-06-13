@@ -72,8 +72,13 @@ export default {
         async getWinner() {
             const resp = await call_method("get_auction_winner", {id: this.current.auctionId})
 
-            if ("error" in resp && resp.error.code == -32007)
+            if ("error" in resp && resp.error.code === -32007)
                 return;
+            if ("error" in resp && resp.error.code === -32009) {
+                this.winner = "Никто не победил";
+                this.allowed = false;
+                return;
+            }
             if ("error" in resp) {
                 this.hasErrorsBet = true;
                 this.error = resp.error.message;
