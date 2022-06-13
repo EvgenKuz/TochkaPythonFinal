@@ -10,7 +10,8 @@ from passlib.hash import sha256_crypt
 
 from .Decorators import disabled, requires_login, admin_only, for_tests_only
 from .Errors import user_exists_error, wrong_login_error, \
-    invalid_email_error, no_user_logged_in_error, auction_does_not_exist_error
+    invalid_email_error, no_user_logged_in_error, auction_does_not_exist_error, auction_is_ongoing_error, \
+    auction_has_ended_error
 from .Utils import make_jsonrpc_response, is_valid_email, make_dict_auction
 from src.auth.AuthorizationPolicy import check_credentials
 
@@ -95,15 +96,16 @@ async def add_item(request: Request, json: dict) -> Response:
     return response
 
 
-@disabled
 @admin_only
 async def change_item_status(request: Request, json: dict) -> Response:
     params = json["params"]
     auction_id = params["id"]
-    allowed = params["allowed"]
 
-    auction = await request.app["db"].get(Auction, id=auction_id)
-    auction.allowed = allowed
+    try:
+        auction = await request.app["db"].get(Auction, id=auction_id)
+    except (peewee.DoesNotExist, peewee.DataError):
+        return json_response(auction_does_not_exist_error(json))
+    auction.allowed = False
     await request.app["db"].update(auction)
 
     response = make_jsonrpc_response(json, "ok")
@@ -113,7 +115,6 @@ async def change_item_status(request: Request, json: dict) -> Response:
 
 @requires_login
 async def get_items(request: Request, json: dict) -> Response:
-    db_items: list[Auction] = []
     if await permits(request, "admin"):
         db_items = await request.app["db"].execute(Auction.select().order_by(Auction.end_of_auction))
     else:
@@ -142,6 +143,7 @@ async def get_item(request: Request, json: dict) -> Response:
         return json_response(auction_does_not_exist_error(json))
 
     result = make_dict_auction(item)
+    result["allowed"] = item.allowed
     response = make_jsonrpc_response(json, result)
 
     return response
@@ -154,9 +156,12 @@ async def bet(request: Request, json: dict) -> Response:
     user = await authorized_userid(request)
 
     try:
-        await request.app["db"].get(Auction.select().where(Auction.id == item_id))
+        auction = await request.app["db"].get(Auction, id=item_id)
     except (peewee.DoesNotExist, peewee.DataError):
         return json_response(auction_does_not_exist_error(json))
+
+    if not auction.allowed or auction.end_of_auction <= datetime.now():
+        return json_response(auction_has_ended_error(json))
 
     await request.app["db"].get_or_create(Bet, auction=item_id, user=user, bet=price)
 
@@ -199,3 +204,34 @@ async def get_user_bets(request: Request, json: dict) -> Response:
 
     return make_jsonrpc_response(json, bets)
 
+
+@requires_login
+async def get_auction_winner(request: Request, json: dict) -> Response:
+    item_id = json["params"]["id"]
+
+    try:
+        auction = await request.app["db"].get(Auction, id=item_id)
+    except (peewee.DoesNotExist, peewee.DataError):
+        return json_response(auction_does_not_exist_error(json))
+
+    if auction.allowed and auction.end_of_auction > datetime.now():
+        return json_response(auction_is_ongoing_error(json))
+
+    bet: Bet = (await request.app["db"].execute(auction.bets.order_by(Bet.bet.desc())))[0]
+
+    return make_jsonrpc_response(json, bet.user.username)
+
+
+async def get_user_info(request: Request, json: dict) -> Response:
+    user = await authorized_userid(request)
+
+    if not user:
+        return json_response(no_user_logged_in_error(json))
+
+    info: User = await request.app["db"].get(User, username=user)
+
+    return make_jsonrpc_response(json, {
+        "username": user,
+        "email": info.email,
+        "is_admin": info.is_superuser
+    })

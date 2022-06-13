@@ -55,3 +55,11 @@ def method_disabled_error(json: dict) -> dict:
 
 def auction_does_not_exist_error(json: dict):
     return common_error(json, -32006, "Auction with this id doesn't exist")
+
+
+def auction_is_ongoing_error(json: dict):
+    return common_error(json, -32007, "Auction hasn't ended yet")
+
+
+def auction_has_ended_error(json: dict):
+    return common_error(json, -32008, "Auction has ended")
