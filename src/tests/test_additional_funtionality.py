@@ -117,6 +117,37 @@ async def test_get_auction_winner_no_access_error(client: TestClient) -> None:
     assert ans["error"]["message"] == "You have no access to this method"
 
 
+async def test_get_auction_winner_no_winner_error(client: TestClient) -> None:
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
+        "username": "tester11.3",
+        "password": "1234",
+        "email": "tar@ytaaak.lo"
+    }))
+    await make_admin("tester11.3")
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("add_item", {
+        "name": "Item11.3",
+        "starting_price": 28.55,
+        "picture": "blablalink10",
+        "description": "A thing 11",
+        "end_of_auction": "2024-09-14T01:23:45"
+    }))
+
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_items", {}))
+    ans = await resp.json()
+    item_id = ""
+
+    for it in ans["result"]:
+        if it["name"] == "Item11.3":
+            item_id = it["id"]
+
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("change_item_status", {"id": item_id}))
+    resp = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_auction_winner", {"id": item_id}))
+    ans = await resp.json()
+
+    assert ans["error"]["code"] == -32009
+    assert ans["error"]["message"] == "Auction has no winner"
+
+
 async def test_get_user_info(client: TestClient) -> None:
     await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
         "username": "tester12",

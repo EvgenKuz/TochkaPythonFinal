@@ -11,7 +11,7 @@ from passlib.hash import sha256_crypt
 from .Decorators import disabled, requires_login, admin_only, for_tests_only
 from .Errors import user_exists_error, wrong_login_error, \
     invalid_email_error, no_user_logged_in_error, auction_does_not_exist_error, auction_is_ongoing_error, \
-    auction_has_ended_error
+    auction_has_ended_error, can_not_place_bet_error, auction_has_no_winner_error
 from .Utils import make_jsonrpc_response, is_valid_email, make_dict_auction
 from src.auth.AuthorizationPolicy import check_credentials
 
@@ -163,6 +163,16 @@ async def bet(request: Request, json: dict) -> Response:
     if not auction.allowed or auction.end_of_auction <= datetime.now():
         return json_response(auction_has_ended_error(json))
 
+    try:
+        bet = (await request.app["db"].execute(Bet.select(Bet.bet)
+                                               .where(Bet.auction == item_id)
+                                               .order_by(Bet.bet.desc())))[0].bet
+    except IndexError:
+        bet = auction.staring_price
+
+    if price < bet:
+        return json_response(can_not_place_bet_error(json))
+
     await request.app["db"].get_or_create(Bet, auction=item_id, user=user, bet=price)
 
     response = make_jsonrpc_response(json, "ok")
@@ -217,7 +227,10 @@ async def get_auction_winner(request: Request, json: dict) -> Response:
     if auction.allowed and auction.end_of_auction > datetime.now():
         return json_response(auction_is_ongoing_error(json))
 
-    bet: Bet = (await request.app["db"].execute(auction.bets.order_by(Bet.bet.desc())))[0]
+    try:
+        bet: Bet = (await request.app["db"].execute(auction.bets.order_by(Bet.bet.desc())))[0]
+    except IndexError:
+        return json_response(auction_has_no_winner_error(json))
 
     return make_jsonrpc_response(json, bet.user.username)
 

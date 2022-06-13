@@ -63,3 +63,11 @@ def auction_is_ongoing_error(json: dict):
 
 def auction_has_ended_error(json: dict):
     return common_error(json, -32008, "Auction has ended")
+
+
+def auction_has_no_winner_error(json: dict):
+    return common_error(json, -32009, "Auction has no winner")
+
+
+def can_not_place_bet_error(json: dict):
+    return common_error(json, -32010, "Can't place bet lower than the last")

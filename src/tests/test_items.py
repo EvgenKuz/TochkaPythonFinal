@@ -359,6 +359,38 @@ async def test_bet_auction_ended_error(client: TestClient) -> None:
     assert ans["error"]["message"] == "Auction has ended"
 
 
+async def test_bet_can_not_place_bet_error(client: TestClient) -> None:
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
+        "username": "tester8.3",
+        "password": "1234",
+        "email": "tud@muddd.dat"
+    }))
+    await make_admin("tester8.3")
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("add_item", {
+        "name": "Item8.3",
+        "starting_price": 28.55,
+        "picture": "blablalink7",
+        "description": "A thing 8",
+        "end_of_auction": "2024-09-13T01:23:45"
+    }))
+
+    resp: ClientResponse = await client.post(jsonrpc_path, data=create_jsonrpc_request("get_items", {}))
+    ans = await resp.json()
+    item_id = ""
+
+    for it in ans["result"]:
+        if it["name"] == "Item8.3":
+            item_id = it["id"]
+
+    await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {"id": item_id, "price": 45}))
+
+    resp = await client.post(jsonrpc_path, data=create_jsonrpc_request("bet", {"id": item_id, "price": 30}))
+    ans = await resp.json()
+
+    assert ans["error"]["code"] == -32010
+    assert ans["error"]["message"] == "Can't place bet lower than the last"
+
+
 async def test_get_auction_bets(client: TestClient) -> None:
     await client.post(jsonrpc_path, data=create_jsonrpc_request("register", {
         "username": "tester9",
