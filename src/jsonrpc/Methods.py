@@ -152,7 +152,7 @@ async def get_item(request: Request, json: dict) -> Response:
 @requires_login
 async def bet(request: Request, json: dict) -> Response:
     item_id = json["params"]["id"]
-    price = json["params"]["price"]
+    price = float(json["params"]["price"])
     user = await authorized_userid(request)
 
     try:
